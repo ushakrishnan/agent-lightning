@@ -20,7 +20,165 @@ This folder contains a complete Azure OpenAI integration for Agent Lightning's A
 
 │   └── MODULES_OVERVIEW.md         # Detailed module documentation
 
-## 📁 Files Overview├── room_selector_azure.py          # Core Azure OpenAI room selector
+## 🧪 Environment Setup and Testing
+
+### 1. Activate Your Conda Environment
+```bash
+# Activate the conda environment with Agent Lightning
+conda activate torchfix  # or your specific environment name
+
+# Verify Agent Lightning installation
+python -c "
+import agentlightning
+from agentlightning.algorithm.apo import APO
+from openai import AzureOpenAI
+print('✅ All components available')
+print(f'Agent Lightning: {agentlightning.__version__}')
+"
+```
+
+### 2. Environment Variables Configuration
+```bash
+# Navigate to the AOAI directory
+cd examples/apo/AOAI
+
+# Create .env file with your Azure OpenAI credentials
+cat > .env << 'EOF'
+# Azure OpenAI Configuration
+AZURE_OPENAI_API_KEY=your_api_key_here
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4o-mini
+AZURE_OPENAI_API_VERSION=2024-02-15-preview
+
+# Optional: AgentOps Integration
+AGENTOPS_API_KEY=your_agentops_key
+AGENTOPS_ENABLED=true
+EOF
+
+# Load environment variables for current session
+export $(cat .env | sed 's/#.*//g' | xargs)
+```
+
+### 3. Connection Testing
+```bash
+# Test 1: Basic Azure OpenAI Connection
+python -c "
+import os
+from openai import AzureOpenAI
+
+try:
+    client = AzureOpenAI(
+        api_key=os.getenv('AZURE_OPENAI_API_KEY'),
+        api_version=os.getenv('AZURE_OPENAI_API_VERSION', '2024-02-15-preview'),
+        azure_endpoint=os.getenv('AZURE_OPENAI_ENDPOINT')
+    )
+    
+    response = client.chat.completions.create(
+        model=os.getenv('AZURE_OPENAI_DEPLOYMENT_NAME', 'gpt-4o-mini'),
+        messages=[{'role': 'user', 'content': 'Hello Azure OpenAI!'}],
+        max_tokens=10
+    )
+    print('✅ Azure OpenAI connection successful!')
+    print(f'Model response: {response.choices[0].message.content.strip()}')
+except Exception as e:
+    print(f'❌ Connection failed: {e}')
+"
+
+# Test 2: Room Selector Module Import
+python -c "
+from room_selector_module import RoomSelectorAgent
+agent = RoomSelectorAgent()
+print('✅ Room Selector Agent initialized successfully')
+"
+```
+
+### 4. Interactive Testing
+
+#### Run Room Selector Demo
+```bash
+# Interactive room selection demo
+python room_selector_azure.py
+
+# Expected output:
+# 🏨 Azure OpenAI Room Selector Agent
+# ✅ Agent initialized successfully!
+# 💬 Interactive Mode (type 'quit' to exit)
+```
+
+#### Run APO Training
+```bash
+# Execute APO training with persistence
+python room_selector_apo_persistent.py
+
+# Expected output:
+# 🧠 Agent Lightning APO Training with Azure OpenAI
+# � Starting new training session...
+# 📊 Average Score: 0.87+
+```
+
+### 5. Troubleshooting Common Issues
+
+#### Environment Not Activated
+```bash
+# If you get import errors, ensure conda environment is active
+conda info --envs  # Check active environment (marked with *)
+conda activate torchfix  # Activate if needed
+```
+
+#### Missing Environment Variables
+```bash
+# Check if environment variables are loaded
+echo $AZURE_OPENAI_ENDPOINT
+echo $AZURE_OPENAI_DEPLOYMENT_NAME
+
+# If empty, reload from .env file
+source .env  # Alternative loading method
+```
+
+#### API Connection Issues
+```bash
+# Test connectivity to Azure OpenAI endpoint
+curl -I $AZURE_OPENAI_ENDPOINT
+
+# Verify API key format (should start with your Azure resource)
+echo ${AZURE_OPENAI_API_KEY:0:10}...  # Show first 10 characters
+```
+
+### 6. Comprehensive Integration Testing
+
+#### Run Complete Test Suite
+```bash
+# Execute comprehensive test suite to validate entire integration
+python test_aoai_integration.py
+
+# Expected output:
+# 🧪 Azure OpenAI APO Integration Test Suite
+# ============================================================
+# 🧪 Environment Setup Validation
+# ✅ PASS Python Version    Python 3.10.19
+# ✅ PASS Agent Lightning Import    Version 0.2.2
+# ✅ PASS Azure OpenAI SDK Import
+# ... (additional test results)
+# 🎉 All tests passed! Your Azure OpenAI APO integration is ready to use.
+```
+
+#### Test Categories Covered
+- **Environment Setup**: Python version, package imports, dependencies
+- **Environment Variables**: Azure OpenAI credentials validation
+- **Azure Connection**: API connectivity and authentication
+- **Module Imports**: Room selector and APO trainer initialization
+- **Room Selection**: End-to-end functionality testing
+- **APO Scoring**: Multi-dimensional scoring system validation
+- **Persistence**: Checkpoint save/load functionality
+
+#### Individual Component Testing
+```bash
+# Test specific components independently
+python -c "from test_aoai_integration import test_environment_setup; test_environment_setup()"
+python -c "from test_aoai_integration import test_azure_openai_connection; test_azure_openai_connection()"
+```
+
+---├── room_selector_azure.py          # Core Azure OpenAI room selector
 
 ├── room_selector_apo_persistent.py # APO training with persistence
 

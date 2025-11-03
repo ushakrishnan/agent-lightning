@@ -2,7 +2,125 @@
 
 This document provides a comprehensive guide to the APO (Automatic Prompt Optimization) persistence system and scoring mechanisms used in the Azure OpenAI room selector agent.
 
-## 🧠 APO Algorithm Overview
+## � Environment Setup and Testing
+
+### Development Environment Preparation
+
+#### 1. Conda Environment Activation
+```bash
+# Ensure you're using the correct conda environment
+conda activate torchfix  # or your Agent Lightning environment
+
+# Verify environment setup
+conda list | grep -E "(agentlightning|torch|openai)" 
+python -c "import agentlightning, torch; print('✅ Environment ready')"
+```
+
+#### 2. Azure OpenAI Configuration
+```bash
+# Navigate to working directory
+cd examples/apo/AOAI
+
+# Configure environment variables
+export AZURE_OPENAI_API_KEY="your_api_key"
+export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com/"
+export AZURE_OPENAI_DEPLOYMENT_NAME="gpt-4o-mini"
+export AZURE_OPENAI_API_VERSION="2024-02-15-preview"
+
+# Test connection
+python -c "
+from openai import AzureOpenAI
+import os
+client = AzureOpenAI(
+    api_key=os.getenv('AZURE_OPENAI_API_KEY'),
+    api_version=os.getenv('AZURE_OPENAI_API_VERSION'),
+    azure_endpoint=os.getenv('AZURE_OPENAI_ENDPOINT')
+)
+print('✅ Azure OpenAI connection verified')
+"
+```
+
+### APO Training Environment Testing
+
+#### 1. Persistence System Validation
+```bash
+# Test checkpoint loading/saving
+python -c "
+from room_selector_apo_persistent import PersistentAPOTrainer
+trainer = PersistentAPOTrainer('test_checkpoint.json')
+
+# Test save operation
+trainer.training_history = [{'test': 'data'}]
+trainer.save_checkpoint()
+print('✅ Checkpoint save test passed')
+
+# Test load operation  
+trainer.load_checkpoint()
+print('✅ Checkpoint load test passed')
+print(f'History loaded: {len(trainer.training_history)} entries')
+"
+```
+
+#### 2. Scoring System Validation
+```bash
+# Test scoring algorithm
+python -c "
+from room_selector_apo_persistent import PersistentAPOTrainer
+trainer = PersistentAPOTrainer()
+
+# Test scoring with sample data
+task = {
+    'id': 'test_business',
+    'expected_features': ['wifi', 'workspace', 'budget']
+}
+recommendation = 'I recommend the Business Room with excellent WiFi, dedicated workspace, and fits your budget perfectly.'
+
+score = trainer.evaluate_room_selection(task, recommendation)
+print(f'✅ Scoring test completed: {score:.2f}')
+print('Expected score: 0.8-1.0 for good recommendation')
+"
+```
+
+#### 3. Training Pipeline Testing
+```bash
+# Run minimal training session
+python -c "
+from room_selector_apo_persistent import PersistentAPOTrainer
+trainer = PersistentAPOTrainer('test_training.json')
+
+print('🧪 Running test training session...')
+trainer.run_training_session(num_iterations=1)
+print('✅ Training pipeline test completed')
+"
+```
+
+### Performance Monitoring
+
+#### Training Metrics Validation
+```bash
+# Monitor training performance
+python -c "
+import json
+import os
+
+if os.path.exists('apo_training_history.json'):
+    with open('apo_training_history.json', 'r') as f:
+        data = json.load(f)
+    
+    print('📊 Training History Analysis:')
+    print(f'Total sessions: {len(data.get(\"history\", []))}')
+    print(f'Best score: {data.get(\"best_score\", 0):.2f}')
+    
+    if data.get('history'):
+        recent = data['history'][-1]
+        print(f'Latest session score: {recent.get(\"average_score\", 0):.2f}')
+        print(f'Latest duration: {recent.get(\"duration_seconds\", 0):.1f}s')
+else:
+    print('No training history found. Run training first.')
+"
+```
+
+---
 
 APO (Automatic Prompt Optimization) is Agent Lightning's sophisticated algorithm for automatically improving prompts through iterative optimization. It learns from performance feedback to enhance agent responses over time.
 

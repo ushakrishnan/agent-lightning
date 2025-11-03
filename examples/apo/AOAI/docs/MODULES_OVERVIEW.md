@@ -52,7 +52,71 @@ examples/apo/AOAI/├── docs/
 
 ## 📋 File Documentation
 
-## 📋 Module Documentation
+### Environment Setup and Testing
+
+#### Prerequisites Verification
+```bash
+# 1. Activate conda environment
+conda activate torchfix  # or your Agent Lightning environment
+
+# 2. Verify Python version and packages
+python --version  # Should be 3.10+ 
+pip list | grep -E "(agentlightning|torch|openai)"
+```
+
+**Expected output:**
+```
+Python 3.10.19
+agentlightning     0.2.2
+openai            2.6.1
+torch             2.7.1
+```
+
+#### Environment Variables Configuration
+```bash
+# Navigate to AOAI directory
+cd examples/apo/AOAI
+
+# Create .env file (if not exists)
+cat > .env << 'EOF'
+AZURE_OPENAI_API_KEY=your_api_key_here
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4o-mini
+AZURE_OPENAI_API_VERSION=2024-02-15-preview
+EOF
+
+# Load environment variables
+export $(cat .env | xargs)
+```
+
+#### Module Testing
+```bash
+# Test 1: Core module import and initialization
+python -c "
+from room_selector_module import RoomSelectorAgent
+agent = RoomSelectorAgent()
+print('✅ RoomSelectorAgent initialized successfully')
+"
+
+# Test 2: Azure OpenAI connection
+python -c "
+from room_selector_module import RoomSelectorAgent
+agent = RoomSelectorAgent()
+result = agent.select_room('Test room selection')
+print('✅ Room selection test completed')
+print(f'Success: {result[\"success\"]}')
+"
+
+# Test 3: APO training module
+python -c "
+from room_selector_apo_persistent import PersistentAPOTrainer
+trainer = PersistentAPOTrainer()
+print('✅ APO trainer initialized successfully')
+print(f'Training history: {len(trainer.training_history)} sessions')
+"
+```
+
+---
 
 ### 🔧 Core Files
 
